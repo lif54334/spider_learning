@@ -11,7 +11,7 @@ import config
 from tools import utils
 
 plot_lock = asyncio.Lock()
-
+# 定义了一个异步类 AsyncWordCloudGenerator，用于生成文本数据的词频统计以及基于这些统计的词云图像。
 class AsyncWordCloudGenerator:
     def __init__(self):
         self.stop_words_file = config.STOP_WORDS_FILE
@@ -22,10 +22,12 @@ class AsyncWordCloudGenerator:
             jieba.add_word(word)
 
     def load_stop_words(self):
+        # 打开停用词文件，读取内容，去除前后空白并按行分割成列表，然后返回这个停用词集合。
         with open(self.stop_words_file, 'r', encoding='utf-8') as f:
             return set(f.read().strip().split('\n'))
 
     async def generate_word_frequency_and_cloud(self, data, save_words_prefix):
+        # 生成词频和词云
         all_text = ' '.join(item['content'] for item in data)
         words = [word for word in jieba.lcut(all_text) if word not in self.stop_words]
         word_freq = Counter(words)
@@ -43,6 +45,7 @@ class AsyncWordCloudGenerator:
         await self.generate_word_cloud(word_freq, save_words_prefix)
 
     async def generate_word_cloud(self, word_freq, save_words_prefix):
+        # 生成词云图像
         await plot_lock.acquire()
         top_20_word_freq = {word: freq for word, freq in
                             sorted(word_freq.items(), key=lambda item: item[1], reverse=True)[:20]}

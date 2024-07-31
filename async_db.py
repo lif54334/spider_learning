@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Union
 
 import aiomysql
 
-
+# 定义了一个名为 AsyncMysqlDB 的类，该类使用 aiomysql 库来封装异步的MySQL数据库操作，包括查询、插入、更新和执行SQL语句等功能。
 class AsyncMysqlDB:
     def __init__(self, pool: aiomysql.Pool) -> None:
         self.__pool = pool

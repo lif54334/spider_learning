@@ -14,7 +14,7 @@ from async_db import AsyncMysqlDB
 from tools import utils
 from var import db_conn_pool_var, media_crawler_db_var
 
-
+# 主要负责异步地管理一个数据库连接池，特别是针对一个名为mediacrawler的数据库的初始化、关闭以及表结构的初始化。
 def parse_mysql_url(mysql_url) -> Dict:
     """
     从配置文件中解析db链接url，给到aiomysql用，因为aiomysql不支持直接以URL的方式传递链接信息。

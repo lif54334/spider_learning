@@ -18,6 +18,8 @@ from . import utils
 
 async def find_login_qrcode(page: Page, selector: str) -> str:
     """find login qrcode image from target selector"""
+    # 此异步函数用于在给定的playwright页面中的特定选择器下查找登录二维码图片的URL，
+    # 并下载该图片将其转换为Base64编码的字符串返回。如果二维码图片的URL是外部链接，它会使用httpx库发起请求获取图片数据。
     try:
         elements = await page.wait_for_selector(
             selector=selector,
@@ -41,6 +43,8 @@ async def find_login_qrcode(page: Page, selector: str) -> str:
 
 def show_qrcode(qr_code) -> None:  # type: ignore
     """parse base64 encode qrcode image and show it"""
+    # 此函数接收一个Base64编码的字符串形式的二维码图像数据，将其解码为PIL Image对象，
+    # 然后在图像周围添加白色边框以提高扫描准确性，最后展示这个二维码图像。
     if "," in qr_code:
         qr_code = qr_code.split(",")[1]
     qr_code = base64.b64decode(qr_code)
@@ -56,6 +60,7 @@ def show_qrcode(qr_code) -> None:  # type: ignore
 
 
 def get_user_agent() -> str:
+    # 此函数返回一个随机选择的桌面浏览器User-Agent字符串，用于模拟不同浏览器访问网站时的请求头。
     ua_list = [
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.5112.79 Safari/537.36",
@@ -82,6 +87,7 @@ def get_user_agent() -> str:
 
 
 def get_mobile_user_agent() -> str:
+    # 类似于get_user_agent，但这个函数返回的是一个随机的移动设备浏览器User-Agent字符串，适用于模拟手机或平板电脑的HTTP请求。
     ua_list = [
         "Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1",
         "Mozilla/5.0 (iPad; CPU OS 16_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.5 Mobile/15E148 Safari/604.1",
@@ -96,6 +102,9 @@ def get_mobile_user_agent() -> str:
 
 
 def convert_cookies(cookies: Optional[List[Cookie]]) -> Tuple[str, Dict]:
+    # 接受一个Playwright的Cookie列表，并将其转换成两个格式：
+    #     一个是以分号连接的字符串（适合用于HTTP请求头中的Cookie字段），
+    #     另一个是字典形式的Cookies，方便直接使用键值对。
     if not cookies:
         return "", {}
     cookies_str = ";".join([f"{cookie.get('name')}={cookie.get('value')}" for cookie in cookies])
@@ -106,6 +115,7 @@ def convert_cookies(cookies: Optional[List[Cookie]]) -> Tuple[str, Dict]:
 
 
 def convert_str_cookie_to_dict(cookie_str: str) -> Dict:
+    # 将形如“name=value; name2=value2”的Cookie字符串转换为字典格式，便于处理。
     cookie_dict: Dict[str, str] = dict()
     if not cookie_str:
         return cookie_dict
@@ -124,6 +134,7 @@ def convert_str_cookie_to_dict(cookie_str: str) -> Dict:
 
 
 def match_interact_info_count(count_str: str) -> int:
+    # 从包含数字的字符串中提取并返回这个数字，通常用于解析网页上显示的互动信息计数（如评论数、点赞数等）。如果输入字符串为空或无法找到数字，则默认返回0。
     if not count_str:
         return 0
 

@@ -5,7 +5,7 @@ from .crawler_util import *
 from .slider_util import *
 from .time_util import *
 
-
+# 初始化日志系统配置和定义一个字符串转布尔值的函数。
 def init_loging_config():
     level = logging.INFO
     logging.basicConfig(

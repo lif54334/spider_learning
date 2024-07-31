@@ -10,17 +10,21 @@ import cv2
 import httpx
 import numpy as np
 
-
+# 定义了一个名为Slide的类，以及两个辅助函数get_track_simple和get_tracks，
+# 用于处理滑块验证码的相关操作，
+# 如缺口图片与背景图片的匹配、边缘检测、移动轨迹生成等。
 class Slide:
     """
     copy from https://blog.csdn.net/weixin_43582101 thanks for author
     update: relakkes
     """
+    # 这个类的主要目的是帮助找到滑块验证码中缺口的位置，进而生成相应的移动轨迹。
     def __init__(self, gap, bg, gap_size=None, bg_size=None, out=None):
         """
         :param gap: 缺口图片链接或者url
         :param bg: 带缺口的图片链接或者url
         """
+        # 接受缺口图片(gap)和背景图片(bg)的链接或路径，可选地接受它们的尺寸以及输出图片的路径。它会检查图片是否是URL，并下载到临时文件夹，然后读取并调整图片尺寸。
         self.img_dir = os.path.join(os.getcwd(), 'temp_image')
         if not os.path.exists(self.img_dir):
             os.makedirs(self.img_dir)
@@ -33,6 +37,7 @@ class Slide:
 
     @staticmethod
     def check_is_img_path(img, img_type, resize):
+        # 用于检查并处理图片路径。如果是URL，就通过HTTP请求获取图片内容，解码为OpenCV格式，按指定尺寸调整大小，并保存到本地。如果图片已经是本地路径，则直接返回。
         if img.startswith('http'):
             headers = {
                 "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;"
@@ -86,6 +91,7 @@ class Slide:
         return img1
 
     def template_match(self, tpl, target):
+        # 使用OpenCV的模板匹配功能来寻找缺口在背景图片中的位置。它比较缺口图片与背景图片的相似度，找到最佳匹配区域并返回其左上角的x坐标。
         th, tw = tpl.shape[:2]
         result = cv2.matchTemplate(target, tpl, cv2.TM_CCOEFF_NORMED)
         # 寻找矩阵(一维数组当作向量,用Mat定义) 中最小值和最大值的位置
@@ -104,10 +110,12 @@ class Slide:
 
     @staticmethod
     def image_edge_detection(img):
+        # 应用Canny边缘检测算法，从灰度图中提取边缘信息。
         edges = cv2.Canny(img, 100, 200)
         return edges
 
     def discern(self):
+        # 先清理并处理缺口图片与背景图片，然后进行边缘检测，最后调用template_match找到缺口位置。
         img1 = self.clear_white(self.gap)
         img1 = cv2.cvtColor(img1, cv2.COLOR_RGB2GRAY)
         slide = self.image_edge_detection(img1)
@@ -123,6 +131,8 @@ class Slide:
 
 
 def get_track_simple(distance) -> List[int]:
+    # 生成一个简单的渐进式移动轨迹。通过控制加速度，使滑块在运动过程中速度先增后减，模拟真实的人类操作。
+
     # 有的检测移动速度的 如果匀速移动会被识别出来，来个简单点的 渐进
     # distance为传入的总距离
     # 移动轨迹
@@ -156,6 +166,10 @@ def get_track_simple(distance) -> List[int]:
 
 
 def get_tracks(distance: int, level: str = "easy") -> List[int]:
+    # 根据难度级别（默认为"easy"）选择不同的轨迹生成策略。
+    # 当难度为"easy"时，直接调用get_track_simple；
+    # 否则，使用来自easing模块的get_tracks函数生成更复杂的缓动效果轨迹，例如指数缓出。
+
     if level == "easy":
         return get_track_simple(distance)
     else:

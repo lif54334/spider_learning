@@ -11,7 +11,7 @@ from media_platform.kuaishou import KuaishouCrawler
 from media_platform.weibo import WeiboCrawler
 from media_platform.xhs import XiaoHongShuCrawler
 
-
+# 定义了一个媒体爬虫框架，它通过命令行参数决定要使用的媒体平台爬虫类型，并提供了数据库初始化与关闭的功能，支持异步操作
 class CrawlerFactory:
     CRAWLERS = {
         "xhs": XiaoHongShuCrawler,

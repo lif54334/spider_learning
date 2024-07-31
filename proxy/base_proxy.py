@@ -44,13 +44,13 @@ class IpCache:
         """
         self.cache_client.set(key=ip_key, value=ip_value_info, expire_time=ex)
 
-    def load_all_ip(self, proxy_brand_name: str) -> List[IpInfoModel]:
+    def load_all_ip(self, proxy_brand_name: str) -> List[IpInfoModel]:  #  ->这个符号用于函数定义之后，紧跟着函数名和参数列表，用来指定函数的返回类型
         """
         从 redis 中加载所有还未过期的 IP 信息
         :param proxy_brand_name: 代理商名称
         :return:
         """
-        all_ip_list: List[IpInfoModel] = []
+        all_ip_list: List[IpInfoModel] = []  # ： 用在变量声明之后来指定变量的类型
         all_ip_keys: List[str] = self.cache_client.keys(pattern=f"{proxy_brand_name}_*")
         try:
             for ip_key in all_ip_keys:
