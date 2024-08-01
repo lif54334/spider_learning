@@ -26,19 +26,22 @@ class XiaoHongShuCrawler(AbstractCrawler):
     browser_context: BrowserContext
 
     def __init__(self) -> None:
+        # 在类初始化时，设置了小红书的首页URL和一个默认的用户代理字符串，模拟浏览器访问。
         self.index_url = "https://www.xiaohongshu.com"
         # self.user_agent = utils.get_user_agent()
         self.user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
 
     async def start(self) -> None:
+
         playwright_proxy_format, httpx_proxy_format = None, None
+        # 根据配置决定是否使用代理IP，并格式化代理信息。
         if config.ENABLE_IP_PROXY:
             ip_proxy_pool = await create_ip_pool(config.IP_PROXY_POOL_COUNT, enable_validate_ip=True)
             ip_proxy_info: IpInfoModel = await ip_proxy_pool.get_proxy()
             playwright_proxy_format, httpx_proxy_format = self.format_proxy_info(ip_proxy_info)
 
         async with async_playwright() as playwright:
-            # Launch a browser context.
+            # 使用async_playwright启动Chromium浏览器，并创建无头浏览器上下文（可根据配置开启或关闭无头模式），同时加入防检测脚本和特定cookie避免滑块验证码。
             chromium = playwright.chromium
             self.browser_context = await self.launch_browser(
                 chromium,
@@ -58,7 +61,7 @@ class XiaoHongShuCrawler(AbstractCrawler):
             self.context_page = await self.browser_context.new_page()
             await self.context_page.goto(self.index_url)
 
-            # Create a client to interact with the xiaohongshu website.
+            # 创建小红书客户端实例，并尝试验证客户端是否正常工作。如果需要登录，将调用登录逻辑
             self.xhs_client = await self.create_xhs_client(httpx_proxy_format)
             if not await self.xhs_client.pong():
                 login_obj = XiaoHongShuLogin(
@@ -70,7 +73,7 @@ class XiaoHongShuCrawler(AbstractCrawler):
                 )
                 await login_obj.begin()
                 await self.xhs_client.update_cookies(browser_context=self.browser_context)
-
+            # 根据配置的爬虫类型（搜索笔记、获取指定笔记详情、获取创作者及其笔记），执行对应的数据抓取逻辑。
             crawler_type_var.set(config.CRAWLER_TYPE)
             if config.CRAWLER_TYPE == "search":
                 # Search for notes and retrieve their comment information.
@@ -87,7 +90,7 @@ class XiaoHongShuCrawler(AbstractCrawler):
             utils.logger.info("[XiaoHongShuCrawler.start] Xhs Crawler finished ...")
 
     async def search(self) -> None:
-        """Search for notes and retrieve their comment information."""
+        """根据关键词搜索笔记，分页获取每页笔记的ID，然后并发获取每个笔记的详细信息，包括评论，并将数据存储到数据库。"""
         utils.logger.info("[XiaoHongShuCrawler.search] Begin search xiaohongshu keywords")
         xhs_limit_count = 20  # xhs limit page fixed value
         if config.CRAWLER_MAX_NOTES_COUNT < xhs_limit_count:
@@ -139,7 +142,7 @@ class XiaoHongShuCrawler(AbstractCrawler):
                     break
 
     async def get_creators_and_notes(self) -> None:
-        """Get creator's notes and retrieve their comment information."""
+        """获取指定创作者的所有笔记列表，然后抓取每个笔记的详细信息和评论。"""
         utils.logger.info("[XiaoHongShuCrawler.get_creators_and_notes] Begin get xiaohongshu creators")
         for user_id in config.XHS_CREATOR_ID_LIST:
             # get creator detail info from web html content
@@ -178,7 +181,7 @@ class XiaoHongShuCrawler(AbstractCrawler):
                 await xhs_store.update_xhs_note(note_detail)
 
     async def get_specified_notes(self):
-        """Get the information and comments of the specified post"""
+        """直接获取指定笔记的详细信息和评论。但此功能注释表明由于接口变更暂时不可用"""
         # todo 指定帖子爬取暂时失效，xhs更新了帖子详情的请求参数，需要携带xsec_token，目前发现该参数只能在搜索场景下获取到
         raise Exception(
             "指定帖子爬取暂时失效，xhs更新了帖子详情的请求参数，需要携带xsec_token，目前发现只能在搜索场景下获取到")
